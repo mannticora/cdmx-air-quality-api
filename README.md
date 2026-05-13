@@ -86,6 +86,7 @@ Interactive docs at: `http://localhost:8000/docs`
 
 ## 🗂️ Project Structure
 
+'''
 cdmx-air-quality-api/
 ├── app/
 │   ├── main.py          # FastAPI app entry point
@@ -99,6 +100,8 @@ cdmx-air-quality-api/
 ├── docker-compose.yml
 ├── requirements.txt
 └── README.md
+
+'''
 
 ---
 
