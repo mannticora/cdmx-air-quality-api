@@ -1,8 +1,13 @@
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-DATABASE_URL = "mysql+pymysql://airapi:airapi123@172.26.96.1:3306/cdmx_air_quality"
+# Lee la URL desde variable de entorno, si no usa la local por defecto
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "mysql+pymysql://airapi:airapi123@172.26.96.1:3306/cdmx_air_quality"
+)
 
 engine = create_engine(DATABASE_URL)
 
