@@ -77,13 +77,6 @@ Interactive docs at: `http://localhost:8000/docs`
 
 ---
 
-## ☁️ Live Demo
-
-> Deployed on Azure App Service  
-> 🔗 `https://cdmx-air-quality-api.azurewebsites.net/docs`
-
----
-
 ## 🗂️ Project Structure
 
 ```
