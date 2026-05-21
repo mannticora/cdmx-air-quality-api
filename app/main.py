@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from app.database import engine
 from app import models
-from app.routers import measurements
+from app.routers import measurements, stats
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -12,6 +12,7 @@ app = FastAPI(
 )
 
 app.include_router(measurements.router)
+app.include_router(stats.router)
 
 @app.get("/")
 def health_check():
