@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 from typing import Optional
 
@@ -11,6 +11,8 @@ class MeasurementCreate(BaseModel):
     timestamp: Optional[datetime] = None
 
 class MeasurementResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
     id: int
     station: str
     zone: str
@@ -18,6 +20,3 @@ class MeasurementResponse(BaseModel):
     value: float
     unit: str
     timestamp: datetime
-
-    class Config:
-        from_attributes = True
