@@ -101,3 +101,22 @@ def get_alerts(db: Session):
             })
 
     return alerts
+
+def update_measurement(db: Session, measurement_id: int, measurement: schemas.MeasurementCreate):
+    # Busca la medición existente
+    db_measurement = get_measurement(db, measurement_id)
+    if not db_measurement:
+        return None
+    
+    # Actualiza los campos
+    db_measurement.station = measurement.station
+    db_measurement.zone = measurement.zone
+    db_measurement.pollutant = measurement.pollutant
+    db_measurement.value = measurement.value
+    db_measurement.unit = measurement.unit
+    if measurement.timestamp:
+        db_measurement.timestamp = measurement.timestamp
+    
+    db.commit()
+    db.refresh(db_measurement)
+    return db_measurement

@@ -51,3 +51,13 @@ def delete_measurement(measurement_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Measurement not found")
     logger.info(f"Deleted measurement id={measurement_id}")
     return {"message": "Measurement deleted successfully"}
+
+@router.put("/{measurement_id}", response_model=schemas.MeasurementResponse)
+def update_measurement(measurement_id: int, measurement: schemas.MeasurementCreate, db: Session = Depends(get_db)):
+    logger.info(f"PUT /measurements/{measurement_id}")
+    result = crud.update_measurement(db, measurement_id, measurement)
+    if not result:
+        logger.warning(f"Measurement {measurement_id} not found for update")
+        raise HTTPException(status_code=404, detail="Measurement not found")
+    logger.info(f"Updated measurement id={measurement_id}")
+    return result

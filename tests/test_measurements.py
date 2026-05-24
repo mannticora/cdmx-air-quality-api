@@ -49,3 +49,30 @@ def test_get_alerts():
     response = client.get("/stats/alerts")
     assert response.status_code == 200
     assert isinstance(response.json(), list)
+
+def test_update_measurement():
+    # Primero crea una medición
+    payload = {
+        "station": "Test Station Update",
+        "zone": "Sur",
+        "pollutant": "no2",
+        "value": 50.0,
+        "unit": "µg/m³",
+        "timestamp": "2024-01-01T10:00:00"
+    }
+    create_response = client.post("/measurements/", json=payload)
+    measurement_id = create_response.json()["id"]
+
+    # Luego actualiza
+    updated_payload = {
+        "station": "Updated Station",
+        "zone": "Norte",
+        "pollutant": "no2",
+        "value": 75.0,
+        "unit": "µg/m³",
+        "timestamp": "2024-01-01T10:00:00"
+    }
+    response = client.put(f"/measurements/{measurement_id}", json=updated_payload)
+    assert response.status_code == 200
+    assert response.json()["station"] == "Updated Station"
+    assert response.json()["value"] == 75.0
