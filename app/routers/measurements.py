@@ -19,21 +19,14 @@ def get_measurements(
     pollutant: Optional[str] = Query(None),
     start: Optional[datetime] = Query(None),
     end: Optional[datetime] = Query(None),
+    page: int = Query(1, ge=1, description="Número de página"),
+    limit: int = Query(50, ge=1, le=500, description="Resultados por página (máx 500)"),
     db: Session = Depends(get_db)
 ):
-    logger.info(f"GET /measurements | zone={zone} pollutant={pollutant} start={start} end={end}")
-    results = crud.get_measurements(db, zone=zone, pollutant=pollutant, start=start, end=end)
+    logger.info(f"GET /measurements | zone={zone} pollutant={pollutant} page={page} limit={limit}")
+    results = crud.get_measurements(db, zone=zone, pollutant=pollutant, start=start, end=end, page=page, limit=limit)
     logger.info(f"Returned {len(results)} measurements")
     return results
-
-@router.get("/{measurement_id}", response_model=schemas.MeasurementResponse)
-def get_measurement(measurement_id: int, db: Session = Depends(get_db)):
-    logger.info(f"GET /measurements/{measurement_id}")
-    measurement = crud.get_measurement(db, measurement_id)
-    if not measurement:
-        logger.warning(f"Measurement {measurement_id} not found")
-        raise HTTPException(status_code=404, detail="Measurement not found")
-    return measurement
 
 @router.post("/", response_model=schemas.MeasurementResponse)
 def create_measurement(measurement: schemas.MeasurementCreate, db: Session = Depends(get_db)):

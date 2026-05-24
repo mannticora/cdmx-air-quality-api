@@ -9,7 +9,9 @@ def get_measurements(
     zone: Optional[str] = None,
     pollutant: Optional[str] = None,
     start: Optional[datetime] = None,
-    end: Optional[datetime] = None
+    end: Optional[datetime] = None,
+    page: int = 1,
+    limit: int = 50
 ):
     # Inicia la consulta base
     query = db.query(models.Measurement)
@@ -24,12 +26,9 @@ def get_measurements(
     if end:
         query = query.filter(models.Measurement.timestamp <= end)
 
-    return query.all()
-
-def get_measurement(db: Session, measurement_id: int):
-    return db.query(models.Measurement).filter(
-        models.Measurement.id == measurement_id
-    ).first()
+    # Aplica paginación
+    offset = (page - 1) * limit
+    return query.offset(offset).limit(limit).all()
 
 def create_measurement(db: Session, measurement: schemas.MeasurementCreate):
     db_measurement = models.Measurement(
@@ -104,7 +103,9 @@ def get_alerts(db: Session):
 
 def update_measurement(db: Session, measurement_id: int, measurement: schemas.MeasurementCreate):
     # Busca la medición existente
-    db_measurement = get_measurement(db, measurement_id)
+    db_measurement = db.query(models.Measurement).filter(
+    models.Measurement.id == measurement_id
+).first()
     if not db_measurement:
         return None
     
