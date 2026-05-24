@@ -121,3 +121,32 @@ def update_measurement(db: Session, measurement_id: int, measurement: schemas.Me
     db.commit()
     db.refresh(db_measurement)
     return db_measurement
+
+def get_stats_by_zone(db: Session):
+    # Calcula promedio por zona y contaminante
+    results = db.query(
+        models.Measurement.zone,
+        models.Measurement.pollutant,
+        func.avg(models.Measurement.value).label("average"),
+        func.max(models.Measurement.value).label("maximum"),
+        func.min(models.Measurement.value).label("minimum"),
+        func.count(models.Measurement.id).label("total")
+    ).group_by(
+        models.Measurement.zone,
+        models.Measurement.pollutant
+    ).order_by(
+        models.Measurement.zone,
+        models.Measurement.pollutant
+    ).all()
+
+    return [
+        {
+            "zone": r.zone,
+            "pollutant": r.pollutant,
+            "average": round(r.average, 2),
+            "maximum": r.maximum,
+            "minimum": r.minimum,
+            "total_measurements": r.total
+        }
+        for r in results
+    ]

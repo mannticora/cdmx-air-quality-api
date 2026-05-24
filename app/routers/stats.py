@@ -24,3 +24,10 @@ def get_alerts(db: Session = Depends(get_db)):
     results = crud.get_alerts(db)
     logger.info(f"Alerts returned {len(results)} exceeded measurements")
     return results
+
+@router.get("/by-zone")
+def get_stats_by_zone(db: Session = Depends(get_db)):
+    logger.info("GET /stats/by-zone requested")
+    results = crud.get_stats_by_zone(db)
+    logger.info(f"By-zone stats returned {len(results)} records")
+    return results

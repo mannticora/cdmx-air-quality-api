@@ -75,3 +75,8 @@ def test_update_measurement():
     assert response.status_code == 200
     assert response.json()["station"] == "Updated Station"
     assert response.json()["value"] == 75.0
+
+def test_get_stats_by_zone():
+    response = client.get("/stats/by-zone")
+    assert response.status_code == 200
+    assert isinstance(response.json(), list)
