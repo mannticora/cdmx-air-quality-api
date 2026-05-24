@@ -1,5 +1,7 @@
 # 🌆 CDMX Air Quality API
 
+![CI Pipeline](https://github.com/mannticora/cdmx-air-quality-api/actions/workflows/ci.yml/badge.svg)
+
 A RESTful API built with **Python + FastAPI** to ingest, store, and query real-time and historical air quality data from Mexico City (CDMX) monitoring stations.
 
 Designed for environmental monitoring systems, research dashboards, and public health applications.
