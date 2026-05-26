@@ -1,5 +1,7 @@
 import os
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from dotenv import load_dotenv
 from app.database import engine
 from app import models
@@ -15,6 +17,8 @@ app = FastAPI(
     version=os.getenv("APP_VERSION", "1.0.0")
 )
 
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
 app.include_router(measurements.router)
 app.include_router(stats.router)
 
@@ -25,3 +29,7 @@ def health_check():
         "message": "CDMX Air Quality API is running",
         "version": os.getenv("APP_VERSION", "1.0.0")
     }
+
+@app.get("/dashboard")
+def dashboard():
+    return FileResponse("app/static/index.html")
