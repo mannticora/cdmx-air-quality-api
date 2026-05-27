@@ -15,7 +15,7 @@ Designed for environmental monitoring systems, research dashboards, and public h
 - 🗺️ Filter by geographic zone (Norte, Sur, Centro, Oriente, Poniente)
 - ⚡ Fast async responses with FastAPI
 - 🐳 Fully containerized with Docker & Docker Compose
-- ☁️ Deployed on Azure App Service
+- ☁️ 
 
 ---
 
@@ -74,7 +74,7 @@ cd cdmx-air-quality-api
 docker compose up --build
 ```
 
-API available at: `http://localhost:8000`
+API available at: `https://cdmx-air-quality-api-production.up.railway.app`
 
 Interactive docs at:`https://cdmx-air-quality-api-production.up.railway.app/docs`
 
