@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CDMX Air Quality API — Guía Interactiva</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f1117; color: #e2e8f0; min-height: 100vh; }
+.header { background: #1a1d27; border-bottom: 1px solid #2d3748; padding: 1.5rem 2rem; }
+.header h1 { font-size: 20px; font-weight: 600; color: #63b3ed; }
+.header p { font-size: 13px; color: #718096; margin-top: 4px; }
+.container { max-width: 960px; margin: 0 auto; padding: 1.5rem 2rem; }
+.tabs { display: flex; gap: 4px; margin-bottom: 1.5rem; flex-wrap: wrap; background: #1a1d27; padding: 6px; border-radius: 10px; border: 1px solid #2d3748; }
+.tab { padding: 7px 16px; border-radius: 7px; border: none; font-size: 13px; cursor: pointer; background: transparent; color: #718096; transition: all 0.15s; }
+.tab.active { background: #2d3748; color: #e2e8f0; font-weight: 500; }
+.tab:hover:not(.active) { color: #a0aec0; }
+.section { display: none; }
+.section.active { display: block; }
+.card { background: #1a1d27; border: 1px solid #2d3748; border-radius: 10px; padding: 1.25rem; margin-bottom: 1rem; }
+.info-box { background: #1e3a5f; border: 1px solid #2b6cb0; border-radius: 8px; padding: 10px 14px; margin-bottom: 1rem; font-size: 13px; color: #90cdf4; line-height: 1.6; }
+.step { display: flex; gap: 12px; margin-bottom: 1rem; align-items: flex-start; }
+.step-num { width: 26px; height: 26px; border-radius: 50%; background: #2d3748; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0; color: #63b3ed; }
+.step-title { font-size: 14px; font-weight: 600; color: #e2e8f0; margin-bottom: 2px; }
+.step-desc { font-size: 13px; color: #718096; line-height: 1.5; }
+.controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 1rem; }
+label { font-size: 12px; color: #718096; display: block; margin-bottom: 5px; }
+select, input { width: 100%; padding: 7px 10px; border-radius: 7px; border: 1px solid #2d3748; background: #0f1117; color: #e2e8f0; font-size: 13px; }
+.btn { padding: 9px 20px; border-radius: 8px; border: 1px solid #2d3748; background: #2d3748; color: #e2e8f0; font-size: 13px; cursor: pointer; font-weight: 500; width: 100%; margin-bottom: 1rem; transition: background 0.15s; }
+.btn:hover { background: #3d4a5c; }
+.url-box { background: #0f1117; border-radius: 8px; padding: 9px 12px; font-family: 'Courier New', monospace; font-size: 11px; color: #718096; margin-bottom: 1rem; word-break: break-all; border: 1px solid #2d3748; }
+.url-box span { color: #63b3ed; }
+.result { background: #0f1117; border-radius: 8px; padding: 12px; font-family: 'Courier New', monospace; font-size: 11px; color: #a0aec0; max-height: 220px; overflow-y: auto; white-space: pre-wrap; border: 1px solid #2d3748; }
+.metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 1rem; }
+.metric { background: #0f1117; border-radius: 8px; padding: 12px; border: 1px solid #2d3748; }
+.metric-label { font-size: 11px; color: #718096; margin-bottom: 4px; }
+.metric-value { font-size: 22px; font-weight: 600; color: #63b3ed; }
+.metric-unit { font-size: 11px; color: #718096; }
+.alert-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #2d3748; }
+.alert-item:last-child { border-bottom: none; }
+.alert-name { font-size: 13px; font-weight: 500; color: #e2e8f0; }
+.alert-zone { font-size: 11px; color: #718096; }
+.alert-badge { font-size: 11px; padding: 3px 9px; border-radius: 6px; background: rgba(252,129,74,0.15); color: #fc814a; font-weight: 500; }
+.loading { color: #718096; font-size: 13px; padding: 1rem 0; text-align: center; }
+.chart-wrap { position: relative; width: 100%; height: 250px; margin-top: 1rem; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>🌆 CDMX Air Quality API</h1>
+  <p>Guía interactiva — datos reales de calidad del aire de la Ciudad de México</p>
+</div>
+<div class="container">
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('intro')">¿Qué es?</button>
+    <button class="tab" onclick="showTab('query')">Consultar datos</button>
+    <button class="tab" onclick="showTab('stats')">Estadísticas</button>
+    <button class="tab" onclick="showTab('alerts')">Alertas OMS</button>
+    <button class="tab" onclick="showTab('dashboard')">Dashboard</button>
+  </div>
+
+  <div id="tab-intro" class="section active">
+    <div class="card">
+      <div class="info-box">Esta API almacena y sirve datos meteorológicos reales de las estaciones de monitoreo de la Red REDMET de la CDMX. Contiene más de 33,000 mediciones reales de 2026.</div>
+      <div class="step"><div class="step-num">1</div><div><div class="step-title">¿Qué datos tiene?</div><div class="step-desc">Temperatura, humedad relativa, velocidad y dirección del viento — registradas cada hora por estación de monitoreo.</div></div></div>
+      <div class="step"><div class="step-num">2</div><div><div class="step-title">¿De dónde vienen?</div><div class="step-desc">Del sistema oficial AIRE CDMX (aire.cdmx.gob.mx), la red oficial de monitoreo atmosférico del gobierno de la Ciudad de México.</div></div></div>
+      <div class="step"><div class="step-num">3</div><div><div class="step-title">¿Cómo se consultan?</div><div class="step-desc">Enviando peticiones HTTP a los endpoints. Esta guía te muestra cómo hacerlo de forma interactiva — sin escribir código.</div></div></div>
+      <div class="step"><div class="step-num">4</div><div><div class="step-title">¿Qué zonas cubre?</div><div class="step-desc">Norte, Sur, Centro, Oriente y Poniente — las 5 zonas de monitoreo metropolitano de la CDMX.</div></div></div>
+    </div>
+    <div class="metrics">
+      <div class="metric"><div class="metric-label">Total mediciones</div><div class="metric-value">33,795</div></div>
+      <div class="metric"><div class="metric-label">Estaciones</div><div class="metric-value">26</div></div>
+      <div class="metric"><div class="metric-label">Variables</div><div class="metric-value">4</div></div>
+      <div class="metric"><div class="metric-label">Zonas</div><div class="metric-value">5</div></div>
+    </div>
+  </div>
+
+  <div id="tab-query" class="section">
+    <div class="card">
+      <div class="info-box">Filtra las mediciones por zona, tipo de variable y cantidad de resultados. Puedes combinar filtros o dejarlos vacíos para obtener todos los datos.</div>
+      <div class="controls">
+        <div><label>Zona</label><select id="q-zone" onchange="updateUrl()"><option value="">Todas</option><option>Norte</option><option>Sur</option><option>Centro</option><option>Oriente</option><option>Poniente</option></select></div>
+        <div><label>Variable</label><select id="q-poll" onchange="updateUrl()"><option value="">Todas</option><option value="tmp">Temperatura</option><option value="rh">Humedad</option><option value="wsp">Vel. viento</option><option value="wdr">Dir. viento</option></select></div>
+        <div><label>Resultados</label><select id="q-limit" onchange="updateUrl()"><option value="5">5</option><option value="10" selected>10</option><option value="50">50</option></select></div>
+      </div>
+      <div class="url-box" id="q-url">GET <span>/measurements/</span></div>
+      <button class="btn" onclick="runQuery()">▶ Ejecutar consulta</button>
+      <div id="q-loading" class="loading" style="display:none">Consultando la API...</div>
+      <div id="q-result" class="result" style="display:none"></div>
+    </div>
+  </div>
+
+  <div id="tab-stats" class="section">
+    <div class="card">
+      <div class="info-box">Las estadísticas calculan automáticamente el promedio, máximo y mínimo de cada variable sobre todas las mediciones disponibles.</div>
+      <button class="btn" onclick="runStats()">▶ Cargar estadísticas</button>
+      <div id="s-loading" class="loading" style="display:none">Calculando...</div>
+      <div class="metrics" id="s-metrics"></div>
+      <div class="chart-wrap" id="s-chart-wrap" style="display:none"><canvas id="s-chart"></canvas></div>
+    </div>
+  </div>
+
+  <div id="tab-alerts" class="section">
+    <div class="card">
+      <div class="info-box">Detecta mediciones que superan los límites recomendados por la OMS. Compara cada valor contra el umbral oficial por contaminante.</div>
+      <button class="btn" onclick="runAlerts()">▶ Ver alertas</button>
+      <div id="a-loading" class="loading" style="display:none">Buscando alertas...</div>
+      <div id="a-list"></div>
+    </div>
+  </div>
+
+  <div id="tab-dashboard" class="section">
+    <div class="card">
+      <div class="info-box">Dashboard con datos reales de la API. Muestra la distribución de mediciones por zona y temperatura promedio por zona.</div>
+      <button class="btn" onclick="runDashboard()">▶ Cargar dashboard</button>
+      <div id="d-loading" class="loading" style="display:none">Cargando...</div>
+      <div class="metrics" id="d-metrics"></div>
+      <div class="chart-wrap" id="d-chart1-wrap" style="display:none"><canvas id="d-chart1"></canvas></div>
+      <div class="chart-wrap" id="d-chart2-wrap" style="display:none; margin-top:1rem"><canvas id="d-chart2"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '';
+let charts = {};
+
+function showTab(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function updateUrl() {
+  const zone = document.getElementById('q-zone').value;
+  const poll = document.getElementById('q-poll').value;
+  const limit = document.getElementById('q-limit').value;
+  let url = '/measurements/?limit=' + limit;
+  if (zone) url += '&zone=' + zone;
+  if (poll) url += '&pollutant=' + poll;
+  document.getElementById('q-url').innerHTML = 'GET <span>' + url + '</span>';
+}
+
+async function runQuery() {
+  const zone = document.getElementById('q-zone').value;
+  const poll = document.getElementById('q-poll').value;
+  const limit = document.getElementById('q-limit').value;
+  let url = API + '/measurements/?limit=' + limit;
+  if (zone) url += '&zone=' + zone;
+  if (poll) url += '&pollutant=' + poll;
+  document.getElementById('q-loading').style.display = 'block';
+  document.getElementById('q-result').style.display = 'none';
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    document.getElementById('q-result').textContent = JSON.stringify(data, null, 2);
+    document.getElementById('q-result').style.display = 'block';
+  } catch(e) { document.getElementById('q-result').textContent = 'Error al conectar.'; document.getElementById('q-result').style.display = 'block'; }
+  document.getElementById('q-loading').style.display = 'none';
+}
+
+async function runStats() {
+  document.getElementById('s-loading').style.display = 'block';
+  document.getElementById('s-metrics').innerHTML = '';
+  try {
+    const res = await fetch(API + '/stats/summary');
+    const data = await res.json();
+    const labels = { tmp: 'Temperatura', rh: 'Humedad', wsp: 'Vel. viento', wdr: 'Dir. viento' };
+    const units = { tmp: '°C', rh: '%', wsp: 'm/s', wdr: '°' };
+    const el = document.getElementById('s-metrics');
+    data.forEach(d => {
+      el.innerHTML += `<div class="metric"><div class="metric-label">${labels[d.pollutant]||d.pollutant} promedio</div><div class="metric-value">${d.average.toFixed(1)}</div><div class="metric-unit">${units[d.pollutant]||''}</div></div>`;
+    });
+    document.getElementById('s-chart-wrap').style.display = 'block';
+    if (charts.s) charts.s.destroy();
+    charts.s = new Chart(document.getElementById('s-chart'), {
+      type: 'bar',
+      data: { labels: data.map(d => labels[d.pollutant]||d.pollutant), datasets: [{ label: 'Promedio', data: data.map(d => +d.average.toFixed(2)), backgroundColor: ['#63b3ed','#68d391','#f6ad55','#fc8181'], borderRadius: 5 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#718096' } }, x: { grid: { display: false }, ticks: { color: '#718096' } } } }
+    });
+  } catch(e) {}
+  document.getElementById('s-loading').style.display = 'none';
+}
+
+async function runAlerts() {
+  document.getElementById('a-loading').style.display = 'block';
+  document.getElementById('a-list').innerHTML = '';
+  try {
+    const res = await fetch(API + '/stats/alerts');
+    const data = await res.json();
+    const el = document.getElementById('a-list');
+    if (!data.length) { el.innerHTML = '<p style="font-size:13px;color:#718096;padding:1rem 0">No hay alertas activas.</p>'; }
+    else { data.slice(0,10).forEach(a => { el.innerHTML += `<div class="alert-item"><div><div class="alert-name">${a.station}</div><div class="alert-zone">${a.zone} · ${a.pollutant.toUpperCase()}</div></div><span class="alert-badge">+${a.exceeded_by.toFixed(1)} sobre límite OMS</span></div>`; }); }
+  } catch(e) {}
+  document.getElementById('a-loading').style.display = 'none';
+}
+
+async function runDashboard() {
+  document.getElementById('d-loading').style.display = 'block';
+  try {
+    const res = await fetch(API + '/stats/by-zone');
+    const data = await res.json();
+    const zones = [...new Set(data.map(d => d.zone))].sort();
+    const colors = { Norte: '#63b3ed', Sur: '#68d391', Centro: '#f6ad55', Oriente: '#fc8181', Poniente: '#b794f4', Desconocida: '#718096' };
+    const totals = {};
+    zones.forEach(z => { totals[z] = data.filter(d => d.zone === z).reduce((a,b) => a + b.total_measurements, 0); });
+    const el = document.getElementById('d-metrics');
+    el.innerHTML = '';
+    zones.forEach(z => { el.innerHTML += `<div class="metric"><div class="metric-label">${z}</div><div class="metric-value" style="font-size:18px">${totals[z].toLocaleString()}</div><div class="metric-unit">mediciones</div></div>`; });
+    document.getElementById('d-chart1-wrap').style.display = 'block';
+    if (charts.d1) charts.d1.destroy();
+    charts.d1 = new Chart(document.getElementById('d-chart1'), {
+      type: 'bar',
+      data: { labels: zones, datasets: [{ label: 'Mediciones', data: zones.map(z => totals[z]), backgroundColor: zones.map(z => colors[z]||'#718096'), borderRadius: 5 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, title: { display: true, text: 'Mediciones por zona', color: '#a0aec0', font: { size: 13 } } }, scales: { y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#718096' } }, x: { grid: { display: false }, ticks: { color: '#718096' } } } }
+    });
+    const tmpData = data.filter(d => d.pollutant === 'tmp');
+    if (tmpData.length) {
+      document.getElementById('d-chart2-wrap').style.display = 'block';
+      if (charts.d2) charts.d2.destroy();
+      charts.d2 = new Chart(document.getElementById('d-chart2'), {
+        type: 'bar',
+        data: { labels: tmpData.map(d => d.zone), datasets: [{ label: 'Temp. promedio (°C)', data: tmpData.map(d => +d.average.toFixed(1)), backgroundColor: tmpData.map(d => colors[d.zone]||'#718096'), borderRadius: 5 }] },
+        options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, title: { display: true, text: 'Temperatura promedio por zona (°C)', color: '#a0aec0', font: { size: 13 } } }, scales: { x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#718096' } }, y: { grid: { display: false }, ticks: { color: '#718096' } } } }
+      });
+    }
+  } catch(e) {}
+  document.getElementById('d-loading').style.display = 'none';
+}
+
+updateUrl();
+</script>
+</body>
+</html>
