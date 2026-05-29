@@ -16,6 +16,7 @@ router = APIRouter(
 @router.get("/", response_model=List[schemas.MeasurementResponse])
 def get_measurements(
     zone: Optional[str] = Query(None),
+    station: Optional[str] = Query(None, description="Filtrar por estación (ej: GAM, PED, TLA)"),
     pollutant: Optional[str] = Query(None),
     start: Optional[datetime] = Query(None),
     end: Optional[datetime] = Query(None),
@@ -24,7 +25,7 @@ def get_measurements(
     db: Session = Depends(get_db)
 ):
     logger.info(f"GET /measurements | zone={zone} pollutant={pollutant} page={page} limit={limit}")
-    results = crud.get_measurements(db, zone=zone, pollutant=pollutant, start=start, end=end, page=page, limit=limit)
+    results = crud.get_measurements(db, zone=zone, pollutant=pollutant, station=station, start=start, end=end, page=page, limit=limit)
     logger.info(f"Returned {len(results)} measurements")
     return results
 

@@ -8,6 +8,7 @@ def get_measurements(
     db: Session,
     zone: Optional[str] = None,
     pollutant: Optional[str] = None,
+    station: Optional[str] = None,
     start: Optional[datetime] = None,
     end: Optional[datetime] = None,
     page: int = 1,
@@ -19,6 +20,8 @@ def get_measurements(
     # Aplica filtros solo si fueron enviados
     if zone:
         query = query.filter(models.Measurement.zone == zone)
+    if station:
+        query = query.filter(models.Measurement.station == station)
     if pollutant:
         query = query.filter(models.Measurement.pollutant == pollutant)
     if start:
