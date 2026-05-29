@@ -76,7 +76,7 @@ docker compose up --build
 
 API available at: `https://cdmx-air-quality-api-production.up.railway.app`
 
-Interactive docs at:`https://cdmx-air-quality-api-production.up.railway.app/docs`
+Interactive docs at:`https://cdmx-air-quality-api-production.up.railway.app/dashboard`
 
 ---
 
