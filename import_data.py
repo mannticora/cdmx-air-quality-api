@@ -5,17 +5,35 @@ from app import models
 
 # Mapeo de estaciones a zonas de CDMX
 STATION_ZONES = {
-    "ACO": "Oriente", "AJM": "Sur", "AJU": "Sur",
-    "BJU": "Sur", "CHO": "Oriente", "CUA": "Centro",
-    "CUT": "Sur", "FAC": "Noreste", "GAM": "Oriente",
-    "HGM": "Centro", "INN": "Norte", "LAA": "Norte",
-    "MER": "Centro", "MGH": "Norte", "MON": "Norte",
-    "NEZ": "Oriente", "PED": "Sur", "SAC": "Norte",
-    "SAG": "Norte", "SFE": "Norte", "TAH": "Sur",
-    "TLA": "Norte", "UAX": "Sur", "UIZ": "Sur",
-    "VIF": "Sur", "XAL": "Oriente"
+    "ACO": "Oriente",   # Acolman
+    "AJM": "Sur",       # Ajusco Medio
+    "AJU": "Sur",       # Ajusco
+    "BJU": "Centro",    # Benito Juárez
+    "CHO": "Oriente",   # Chalco
+    "CUA": "Poniente",  # Cuajimalpa
+    "CUT": "Norte",     # Cuautitlán
+    "FAC": "Noreste",   # FES Acatlán
+    "FAR": "Noreste",   # FES Aragón
+    "GAM": "Oriente",   # Gustavo A. Madero
+    "HGM": "Centro",    # Hospital General
+    "INN": "Norte",     # Insurgentes Norte
+    "LAA": "Sur",       # Los Alpes Ajusco
+    "MER": "Centro",    # Merced
+    "MGH": "Poniente",  # Miguel Hidalgo
+    "MON": "Oriente",   # Montecillo
+    "MPA": "Sur",       # Milpa Alta
+    "NEZ": "Oriente",   # Nezahualcóyotl
+    "PED": "Sur",       # Pedregal
+    "SAC": "Oriente",   # Santiago Acahualtepec
+    "SAG": "Norte",     # San Agustín
+    "SFE": "Poniente",  # Santa Fe
+    "TAH": "Sur",       # Tláhuac
+    "TLA": "Norte",     # Tlalnepantla
+    "UAX": "Sur",       # UAM Xochimilco
+    "UIZ": "Oriente",   # UAM Iztapalapa
+    "VIF": "Norte",     # Villa de las Flores
+    "XAL": "Noreste",   # Xalostoc
 }
-
 # Mapeo de archivos a tipo de medición
 FILE_CONFIG = {
     "2026TMP.csv": {"pollutant": "tmp", "unit": "°C"},

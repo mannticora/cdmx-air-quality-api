@@ -137,6 +137,8 @@ h3:first-child { margin-top: 0; }
         <div><label>Variable</label><select id="q-poll" onchange="updateUrl()"><option value="">Todas</option><option value="tmp">Temperatura (TMP)</option><option value="rh">Humedad (RH)</option><option value="wsp">Vel. viento (WSP)</option><option value="wdr">Dir. viento (WDR)</option></select></div>
         <div><label>Fecha inicio</label><input type="date" id="q-start" onchange="updateUrl()"></div>
         <div><label>Fecha fin</label><input type="date" id="q-end" onchange="updateUrl()"></div>
+        <div><label>Hora inicio</label><input type="time" id="q-hour-start" onchange="updateUrl()"></div>
+        <div><label>Hora fin</label><input type="time" id="q-hour-end" onchange="updateUrl()"></div>
         <div><label>Resultados</label><select id="q-limit" onchange="updateUrl()"><option value="5">5</option><option value="10" selected>10</option><option value="50">50</option></select></div>
         <div><label>Página</label><input type="number" id="q-page" value="1" min="1" onchange="updateUrl()"></div>
       </div>
@@ -345,8 +347,10 @@ function updateUrl() {
   const station = document.getElementById('q-station').value;
   if (station) url += `&station=${station}`;
   if (poll) url += `&pollutant=${poll}`;
-  if (start) url += `&start=${start}T00:00:00`;
-  if (end) url += `&end=${end}T23:59:59`;
+  const hourStart = document.getElementById('q-hour-start').value;
+  const hourEnd = document.getElementById('q-hour-end').value;
+  if (start) url += `&start=${start}T${hourStart || '00:00'}:00`;
+  if (end) url += `&end=${end}T${hourEnd || '23:59'}:59`;
   document.getElementById('q-url').innerHTML = `GET <span>${url}</span>`;
 }
 
@@ -362,8 +366,10 @@ async function runQuery() {
   const station = document.getElementById('q-station').value;
   if (station) url += `&station=${station}`;
   if (poll) url += `&pollutant=${poll}`;
-  if (start) url += `&start=${start}T00:00:00`;
-  if (end) url += `&end=${end}T23:59:59`;
+  const hourStart = document.getElementById('q-hour-start').value;
+  const hourEnd = document.getElementById('q-hour-end').value;
+  if (start) url += `&start=${start}T${hourStart || '00:00'}:00`;
+  if (end) url += `&end=${end}T${hourEnd || '23:59'}:59`;
   document.getElementById('q-loading').style.display = 'block';
   document.getElementById('q-result').style.display = 'none';
   try {
