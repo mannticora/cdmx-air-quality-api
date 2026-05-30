@@ -2,48 +2,48 @@ import pandas as pd
 from datetime import datetime
 from app.database import SessionLocal
 from app import models
+import os
 
-# Mapeo de estaciones a zonas de CDMX
 STATION_ZONES = {
-    "ACO": "Oriente",   # Acolman
-    "AJM": "Sur",       # Ajusco Medio
-    "AJU": "Sur",       # Ajusco
-    "BJU": "Centro",    # Benito Juárez
-    "CHO": "Oriente",   # Chalco
-    "CUA": "Poniente",  # Cuajimalpa
-    "CUT": "Norte",     # Cuautitlán
-    "FAC": "Noreste",   # FES Acatlán
-    "FAR": "Noreste",   # FES Aragón
-    "GAM": "Oriente",   # Gustavo A. Madero
-    "HGM": "Centro",    # Hospital General
-    "INN": "Norte",     # Insurgentes Norte
-    "LAA": "Sur",       # Los Alpes Ajusco
-    "MER": "Centro",    # Merced
-    "MGH": "Poniente",  # Miguel Hidalgo
-    "MON": "Oriente",   # Montecillo
-    "MPA": "Sur",       # Milpa Alta
-    "NEZ": "Oriente",   # Nezahualcóyotl
-    "PED": "Sur",       # Pedregal
-    "SAC": "Oriente",   # Santiago Acahualtepec
-    "SAG": "Norte",     # San Agustín
-    "SFE": "Poniente",  # Santa Fe
-    "TAH": "Sur",       # Tláhuac
-    "TLA": "Norte",     # Tlalnepantla
-    "UAX": "Sur",       # UAM Xochimilco
-    "UIZ": "Oriente",   # UAM Iztapalapa
-    "VIF": "Norte",     # Villa de las Flores
-    "XAL": "Noreste",   # Xalostoc
+    "ACO": "Oriente", "AJM": "Sur", "AJU": "Sur",
+    "BJU": "Centro", "CHO": "Oriente", "CUA": "Poniente",
+    "CUT": "Norte", "FAC": "Noreste", "FAR": "Noreste",
+    "GAM": "Oriente", "HGM": "Centro", "INN": "Norte",
+    "LAA": "Sur", "LLA": "Sur", "MER": "Centro",
+    "MGH": "Poniente", "MON": "Oriente", "MPA": "Sur",
+    "NEZ": "Oriente", "PED": "Sur", "SAC": "Oriente",
+    "SAG": "Norte", "SFE": "Poniente", "TAH": "Sur",
+    "TLA": "Norte", "UAX": "Sur", "UIZ": "Oriente",
+    "VIF": "Norte", "XAL": "Noreste",
+    "ATI": "Noreste", "CAM": "Poniente", "CCA": "Sur",
+    "COY": "Sur", "IZT": "Oriente", "LPR": "Norte",
+    "SJA": "Norte", "TLI": "Norte",
 }
-# Mapeo de archivos a tipo de medición
-FILE_CONFIG = {
+
+REDMET_FILES = {
     "2026TMP.csv": {"pollutant": "tmp", "unit": "°C"},
     "2026RH.csv":  {"pollutant": "rh",  "unit": "%"},
     "2026WSP.csv": {"pollutant": "wsp", "unit": "m/s"},
     "2026WDR.csv": {"pollutant": "wdr", "unit": "°"},
 }
 
-def import_csv(filepath: str, pollutant: str, unit: str, db):
-    df = pd.read_csv(filepath, encoding="utf-8-sig")
+RAMA_FILES = {
+    "2026O3.csv":   {"pollutant": "o3",   "unit": "ppb"},
+    "2026PM25.csv": {"pollutant": "pm25", "unit": "µg/m³"},
+    "2026NO2.csv":  {"pollutant": "no2",  "unit": "ppb"},
+    "2026NO.csv":   {"pollutant": "no",   "unit": "ppb"},
+    "2026NOX.csv":  {"pollutant": "nox",  "unit": "ppb"},
+    "2026CO.csv":   {"pollutant": "co",   "unit": "ppm"},
+    "2026SO2.csv":  {"pollutant": "so2",  "unit": "ppb"},
+    "2026PM10.csv": {"pollutant": "pm10", "unit": "µg/m³"},
+}
+
+def import_csv(filepath, pollutant, unit, db):
+    try:
+        df = pd.read_csv(filepath, encoding="utf-8-sig")
+    except:
+        df = pd.read_csv(filepath, encoding="latin-1")
+    
     stations = [col for col in df.columns if col not in ["FECHA", "HORA"]]
     count = 0
 
@@ -58,12 +58,16 @@ def import_csv(filepath: str, pollutant: str, unit: str, db):
             value = row[station]
             if value == -99 or pd.isna(value):
                 continue
+            try:
+                float_val = float(value)
+            except:
+                continue
 
             measurement = models.Measurement(
                 station=station,
                 zone=STATION_ZONES.get(station, "Desconocida"),
                 pollutant=pollutant,
-                value=float(value),
+                value=float_val,
                 unit=unit,
                 timestamp=timestamp
             )
@@ -75,12 +79,28 @@ def import_csv(filepath: str, pollutant: str, unit: str, db):
 
 if __name__ == "__main__":
     db = SessionLocal()
-    base_path = "/mnt/e/cdmx air/project/26REDMET_CSV"
+    
+    redmet_path = "/mnt/e/cdmx air/project/26REDMET_CSV"
+    rama_path = "/mnt/e/cdmx air/RAMA/26RAMA/CSVRAMA"
 
-    for filename, config in FILE_CONFIG.items():
-        filepath = f"{base_path}/{filename}"
-        print(f"Importando {filename}...")
-        import_csv(filepath, config["pollutant"], config["unit"], db)
+    print("=== REDMET (Meteorológicos) ===")
+    for filename, config in REDMET_FILES.items():
+        filepath = f"{redmet_path}/{filename}"
+        if os.path.exists(filepath):
+            print(f"Importando {filename}...")
+            import_csv(filepath, config["pollutant"], config["unit"], db)
+        else:
+            print(f"⚠️ No encontrado: {filepath}")
+
+    print("\n=== RAMA (Contaminantes) ===")
+    for filename, config in RAMA_FILES.items():
+        filepath = f"{rama_path}/{filename}"
+        if os.path.exists(filepath):
+            print(f"Importando {filename}...")
+            import_csv(filepath, config["pollutant"], config["unit"], db)
+        else:
+            print(f"⚠️ No encontrado: {filepath}")
 
     db.close()
     print("\n🎉 Importación completa")
+

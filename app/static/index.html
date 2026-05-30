@@ -127,14 +127,28 @@ h3:first-child { margin-top: 0; }
     </div>
   </div>
 
-  <!-- CONSULTAR -->
+<!-- CONSULTAR -->
   <div id="tab-query" class="section">
     <div class="card">
       <div class="info-box">Filtra las mediciones combinando zona, estación, variable meteorológica, fecha y hora. Todos los filtros son opcionales.</div>
       <div class="controls">
         <div><label>Zona</label><select id="q-zone" onchange="updateStationOptions(); updateUrl()"><option value="">Todas</option><option>Norte</option><option>Sur</option><option>Centro</option><option>Oriente</option><option>Poniente</option><option>Noreste</option></select></div>
         <div><label>Estación</label><select id="q-station" onchange="updateUrl()"><option value="">Todas</option></select></div>
-        <div><label>Variable</label><select id="q-poll" onchange="updateUrl()"><option value="">Todas</option><option value="tmp">Temperatura (TMP)</option><option value="rh">Humedad (RH)</option><option value="wsp">Vel. viento (WSP)</option><option value="wdr">Dir. viento (WDR)</option></select></div>
+        <div><label>Variable</label><select id="q-poll" onchange="updateUrl()">
+          <option value="">Todas</option>
+          <option value="tmp">Temperatura (TMP)</option>
+          <option value="rh">Humedad (RH)</option>
+          <option value="wsp">Vel. viento (WSP)</option>
+          <option value="wdr">Dir. viento (WDR)</option>
+          <option value="o3">Ozono (O₃) ppb</option>
+          <option value="pm25">PM2.5 µg/m³</option>
+          <option value="pm10">PM10 µg/m³</option>
+          <option value="no2">Dióxido de nitrógeno (NO₂) ppb</option>
+          <option value="no">Monóxido de nitrógeno (NO) ppb</option>
+          <option value="nox">Óxidos de nitrógeno (NOX) ppb</option>
+          <option value="co">Monóxido de carbono (CO) ppm</option>
+          <option value="so2">Dióxido de azufre (SO₂) ppb</option>
+        </select></div>
         <div><label>Fecha inicio</label><input type="date" id="q-start" onchange="updateUrl()"></div>
         <div><label>Fecha fin</label><input type="date" id="q-end" onchange="updateUrl()"></div>
         <div><label>Hora inicio</label><input type="time" id="q-hour-start" onchange="updateUrl()"></div>
@@ -415,8 +429,28 @@ async function runAlerts() {
     const res = await fetch(API + '/stats/alerts');
     const data = await res.json();
     const el = document.getElementById('a-list');
-    if (!data.length) { el.innerHTML = '<p style="font-size:13px;color:#718096;padding:1rem 0">No hay alertas activas con los datos actuales.</p>'; }
-    else { data.slice(0,10).forEach(a => { el.innerHTML += `<div class="alert-item"><div><div class="alert-name">${a.station}</div><div class="alert-zone">${a.zone} · ${a.pollutant.toUpperCase()}</div></div><span class="alert-badge">+${a.exceeded_by.toFixed(1)} sobre límite OMS</span></div>`; }); }
+    if (!data.length) {
+      el.innerHTML = '<p style="font-size:13px;color:#718096;padding:1rem 0">No hay alertas activas.</p>';
+    } else {
+      el.innerHTML = `<p style="font-size:12px;color:#718096;margin-bottom:12px">Mostrando ${data.length} mediciones que superan límites. 🟡 Supera OMS &nbsp; 🔴 Supera NOM</p>`;
+      data.slice(0, 15).forEach(a => {
+        const nomBadge = a.exceeds_nom
+          ? `<span class="alert-badge" style="background:rgba(245,101,101,0.2);color:#fc8181;margin-left:6px">🔴 +${(a.value - a.limit_nom).toFixed(1)} NOM</span>`
+          : `<span class="alert-badge" style="background:rgba(246,173,85,0.15);color:#f6ad55;margin-left:6px">🟡 Bajo NOM</span>`;
+        el.innerHTML += `
+          <div class="alert-item">
+            <div>
+              <div class="alert-name">${a.station} — ${a.zone}</div>
+              <div class="alert-zone">${a.pollutant.toUpperCase()} · ${a.value} ${a.unit} · ${a.timestamp.split('T')[0]}</div>
+              <div style="font-size:11px;color:#4a5568;margin-top:2px">${a.nom_ref}</div>
+            </div>
+            <div style="text-align:right">
+              <span class="alert-badge">+${a.exceeded_by_who.toFixed(1)} vs OMS</span>
+              ${nomBadge}
+            </div>
+          </div>`;
+      });
+    }
   } catch(e) {}
   document.getElementById('a-loading').style.display = 'none';
 }

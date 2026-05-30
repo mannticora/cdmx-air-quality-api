@@ -76,29 +76,37 @@ def get_stats_summary(db: Session):
     ]
 
 def get_alerts(db: Session):
-    # Límites de la OMS para contaminantes (µg/m³)
+    # Límites OMS y NOM-SEMARNAT por contaminante
     limits = {
-        "o3": 100,
-        "pm25": 15,
-        "no2": 25,
-        "co": 4000
+        "o3":   {"who": 51,   "nom": 95,   "unit": "ppb",   "nom_ref": "NOM-020-SSA1-2014"},
+        "pm25": {"who": 15,   "nom": 45,   "unit": "µg/m³", "nom_ref": "NOM-025-SSA1-2014"},
+        "no2":  {"who": 13,   "nom": 210,  "unit": "ppb",   "nom_ref": "NOM-023-SSA1-2021"},
+        "co":   {"who": 3.5,  "nom": 11,   "unit": "ppm",   "nom_ref": "NOM-021-SSA1-2021"},
+        "so2":  {"who": 13,   "nom": 200,  "unit": "ppb",   "nom_ref": "NOM-022-SSA1-2010"},
+        "pm10": {"who": 45,   "nom": 75,   "unit": "µg/m³", "nom_ref": "NOM-025-SSA1-2014"},
     }
 
     alerts = []
-    for pollutant, limit in limits.items():
+    for pollutant, lims in limits.items():
         results = db.query(models.Measurement).filter(
             models.Measurement.pollutant == pollutant,
-            models.Measurement.value > limit
-        ).all()
+            models.Measurement.value > lims["who"]
+        ).limit(100).all()
+
         for r in results:
+            exceeds_nom = r.value > lims["nom"]
             alerts.append({
                 "id": r.id,
                 "station": r.station,
                 "zone": r.zone,
                 "pollutant": r.pollutant,
                 "value": r.value,
-                "limit_who": limit,
-                "exceeded_by": round(r.value - limit, 2),
+                "unit": lims["unit"],
+                "limit_who": lims["who"],
+                "limit_nom": lims["nom"],
+                "nom_ref": lims["nom_ref"],
+                "exceeded_by_who": round(r.value - lims["who"], 2),
+                "exceeds_nom": exceeds_nom,
                 "timestamp": r.timestamp
             })
 
