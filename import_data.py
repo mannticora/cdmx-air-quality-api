@@ -46,6 +46,8 @@ def import_csv(filepath, pollutant, unit, db):
     
     stations = [col for col in df.columns if col not in ["FECHA", "HORA"]]
     count = 0
+    batch = []
+    BATCH_SIZE = 500
 
     for _, row in df.iterrows():
         try:
@@ -63,18 +65,26 @@ def import_csv(filepath, pollutant, unit, db):
             except:
                 continue
 
-            measurement = models.Measurement(
+            batch.append(models.Measurement(
                 station=station,
                 zone=STATION_ZONES.get(station, "Desconocida"),
                 pollutant=pollutant,
                 value=float_val,
                 unit=unit,
                 timestamp=timestamp
-            )
-            db.add(measurement)
+            ))
             count += 1
 
-    db.commit()
+            if len(batch) >= BATCH_SIZE:
+                db.bulk_save_objects(batch)
+                db.commit()
+                batch = []
+                print(f"  → {count} insertados...", end="\r")
+
+    if batch:
+        db.bulk_save_objects(batch)
+        db.commit()
+
     print(f"✅ {pollutant}: {count} mediciones importadas")
 
 if __name__ == "__main__":
@@ -103,4 +113,3 @@ if __name__ == "__main__":
 
     db.close()
     print("\n🎉 Importación completa")
-
