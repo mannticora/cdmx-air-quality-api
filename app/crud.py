@@ -76,37 +76,37 @@ def get_stats_summary(db: Session):
     ]
 
 def get_alerts(db: Session):
-    # Límites OMS y NOM-SEMARNAT por contaminante
+    # Límites OMS y NOM por contaminante
     limits = {
-        "o3":   {"who": 51,   "nom": 95,   "unit": "ppb",   "nom_ref": "NOM-020-SSA1-2014"},
-        "pm25": {"who": 15,   "nom": 45,   "unit": "µg/m³", "nom_ref": "NOM-025-SSA1-2014"},
-        "no2":  {"who": 13,   "nom": 210,  "unit": "ppb",   "nom_ref": "NOM-023-SSA1-2021"},
-        "co":   {"who": 3.5,  "nom": 11,   "unit": "ppm",   "nom_ref": "NOM-021-SSA1-2021"},
-        "so2":  {"who": 13,   "nom": 200,  "unit": "ppb",   "nom_ref": "NOM-022-SSA1-2010"},
-        "pm10": {"who": 45,   "nom": 75,   "unit": "µg/m³", "nom_ref": "NOM-025-SSA1-2014"},
+        "o3":   {"unit": "ppb",    "who": 51,   "nom": 95},
+        "pm25": {"unit": "µg/m³",  "who": 15,   "nom": 45},
+        "pm10": {"unit": "µg/m³",  "who": 45,   "nom": 120},
+        "no2":  {"unit": "ppb",    "who": 13,   "nom": 210},
+        "co":   {"unit": "ppm",    "who": 4,    "nom": 11},
+        "so2":  {"unit": "ppb",    "who": 40,   "nom": 200},
     }
 
     alerts = []
-    for pollutant, lims in limits.items():
+    for pollutant, info in limits.items():
         results = db.query(models.Measurement).filter(
             models.Measurement.pollutant == pollutant,
-            models.Measurement.value > lims["who"]
-        ).limit(100).all()
+            models.Measurement.value > info["who"]
+        ).limit(50).all()
 
         for r in results:
-            exceeds_nom = r.value > lims["nom"]
+            exceeds_nom = r.value > info["nom"]
             alerts.append({
                 "id": r.id,
                 "station": r.station,
                 "zone": r.zone,
                 "pollutant": r.pollutant,
                 "value": r.value,
-                "unit": lims["unit"],
-                "limit_who": lims["who"],
-                "limit_nom": lims["nom"],
-                "nom_ref": lims["nom_ref"],
-                "exceeded_by_who": round(r.value - lims["who"], 2),
+                "unit": info["unit"],
+                "limit_who": info["who"],
+                "limit_nom": info["nom"],
+                "exceeded_by_who": round(r.value - info["who"], 2),
                 "exceeds_nom": exceeds_nom,
+                "exceeded_by_nom": round(r.value - info["nom"], 2) if exceeds_nom else 0,
                 "timestamp": r.timestamp
             })
 

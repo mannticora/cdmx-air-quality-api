@@ -105,7 +105,23 @@ h3:first-child { margin-top: 0; }
     <div class="metrics">
       <div class="metric"><div class="metric-label">Total mediciones</div><div class="metric-value">33,795</div></div>
       <div class="metric"><div class="metric-label">Estaciones</div><div class="metric-value">26</div></div>
-      <div class="metric"><div class="metric-label">Variables</div><div class="metric-value">4</div></div>
+      <div><label>Variable</label><select id="q-poll" onchange="updateUrl()">
+          <option value="">Todas</option>
+          <optgroup label="Meteorológicos">
+            <option value="tmp">Temperatura (TMP) °C</option>
+            <option value="rh">Humedad relativa (RH) %</option>
+            <option value="wsp">Vel. viento (WSP) m/s</option>
+            <option value="wdr">Dir. viento (WDR) °</option>
+          </optgroup>
+          <optgroup label="Contaminantes RAMA">
+            <option value="o3">Ozono (O₃) ppb</option>
+            <option value="pm25">PM2.5 µg/m³</option>
+            <option value="pm10">PM10 µg/m³</option>
+            <option value="no2">Dióxido de nitrógeno (NO₂) ppb</option>
+            <option value="co">Monóxido de carbono (CO) ppm</option>
+            <option value="so2">Dióxido de azufre (SO₂) ppb</option>
+          </optgroup>
+        </select></div>
       <div class="metric"><div class="metric-label">Zonas</div><div class="metric-value">6</div></div>
     </div>
   </div>
@@ -432,23 +448,24 @@ async function runAlerts() {
     if (!data.length) {
       el.innerHTML = '<p style="font-size:13px;color:#718096;padding:1rem 0">No hay alertas activas.</p>';
     } else {
-      el.innerHTML = `<p style="font-size:12px;color:#718096;margin-bottom:12px">Mostrando ${data.length} mediciones que superan límites. 🟡 Supera OMS &nbsp; 🔴 Supera NOM</p>`;
+      const names = { o3: 'Ozono', pm25: 'PM2.5', pm10: 'PM10', no2: 'NO₂', co: 'CO', so2: 'SO₂' };
+      el.innerHTML = `
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:6px;font-size:11px;color:#718096;padding:6px 0;border-bottom:1px solid #2d3748;font-weight:600;">
+          <span>Estación</span><span>Variable</span><span>Valor</span><span>vs OMS</span><span>vs NOM</span>
+        </div>
+      `;
       data.slice(0, 15).forEach(a => {
-        const nomBadge = a.exceeds_nom
-          ? `<span class="alert-badge" style="background:rgba(245,101,101,0.2);color:#fc8181;margin-left:6px">🔴 +${(a.value - a.limit_nom).toFixed(1)} NOM</span>`
-          : `<span class="alert-badge" style="background:rgba(246,173,85,0.15);color:#f6ad55;margin-left:6px">🟡 Bajo NOM</span>`;
+        const nomColor = a.exceeds_nom ? '#fc8181' : '#68d391';
+        const nomText = a.exceeds_nom ? `+${a.exceeded_by_nom.toFixed(1)} ❌` : '✅ Cumple';
         el.innerHTML += `
-          <div class="alert-item">
-            <div>
-              <div class="alert-name">${a.station} — ${a.zone}</div>
-              <div class="alert-zone">${a.pollutant.toUpperCase()} · ${a.value} ${a.unit} · ${a.timestamp.split('T')[0]}</div>
-              <div style="font-size:11px;color:#4a5568;margin-top:2px">${a.nom_ref}</div>
-            </div>
-            <div style="text-align:right">
-              <span class="alert-badge">+${a.exceeded_by_who.toFixed(1)} vs OMS</span>
-              ${nomBadge}
-            </div>
-          </div>`;
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:6px;padding:8px 0;border-bottom:1px solid #2d3748;font-size:12px;align-items:center;">
+            <div><div style="font-weight:500;color:#e2e8f0">${a.station}</div><div style="font-size:11px;color:#718096">${a.zone}</div></div>
+            <span style="color:#a0aec0">${names[a.pollutant]||a.pollutant} (${a.unit})</span>
+            <span style="color:#e2e8f0;font-weight:600">${a.value}</span>
+            <span style="color:#fc814a">+${a.exceeded_by_who.toFixed(1)}</span>
+            <span style="color:${nomColor}">${nomText}</span>
+          </div>
+        `;
       });
     }
   } catch(e) {}
