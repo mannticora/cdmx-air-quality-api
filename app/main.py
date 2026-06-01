@@ -5,7 +5,7 @@ from fastapi.responses import FileResponse
 from dotenv import load_dotenv
 from app.database import engine
 from app import models
-from app.routers import measurements, stats, auth
+from app.routers import measurements, stats
 
 load_dotenv()
 
@@ -21,7 +21,6 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 app.include_router(measurements.router)
 app.include_router(stats.router)
-app.include_router(auth.router)
 
 @app.get("/")
 def health_check():
