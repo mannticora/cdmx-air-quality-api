@@ -1,10 +1,10 @@
 import axios from 'axios';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'https://cdmx-air-quality-api-production.up.railway.app';
+const API_BASE = 'https://cdmx-air-quality-api-production.up.railway.app';
 
 const api = axios.create({
   baseURL: API_BASE,
-  timeout: 10000,
+  timeout: 15000,
 });
 
 export const getMeasurements = (params) => api.get('/measurements/', { params });

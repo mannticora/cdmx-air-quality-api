@@ -1,4 +1,5 @@
 import os
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -15,6 +16,13 @@ app = FastAPI(
     title=os.getenv("APP_TITLE", "CDMX Air Quality API"),
     description="API para consultar datos de calidad del aire en la Ciudad de México",
     version=os.getenv("APP_VERSION", "1.0.0")
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
