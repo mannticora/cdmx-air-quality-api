@@ -74,9 +74,10 @@ cd cdmx-air-quality-api
 docker compose up --build
 ```
 
-API available at: `https://cdmx-air-quality-api-production.up.railway.app`
+## 🔗 Live Demo
 
-Interactive docs at:`https://cdmx-air-quality-api-production.up.railway.app/dashboard`
+- **API + Swagger UI:** https://cdmx-air-quality-api-production.up.railway.app/docs
+- **Dashboard React:** https://gracious-radiance-production.up.railway.app
 
 ---
 
